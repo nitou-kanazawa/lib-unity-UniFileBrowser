@@ -2,55 +2,42 @@
 using System;
 using UnityEditor;
 
-namespace UniFileBrowser
+namespace UniFileBrowser.Standalone
 {
-    public class StandaloneFileBrowserEditor : IFileBrowser
+    /// <summary>
+    /// 
+    /// </summary>
+    internal sealed class EditorFileBrowser : IStandaloneFileBrowser
     {
+        /// <inheritdoc/>
         public string[] OpenFilePanel(string title, string directory, ExtensionFilter[] extensions, bool multiselect)
         {
-            string path = "";
-
-            if (extensions == null)
-            {
-                path = EditorUtility.OpenFilePanel(title, directory, "");
-            }
-            else
-            {
-                path = EditorUtility.OpenFilePanelWithFilters(title, directory, GetFilterFromFileExtensionList(extensions));
-            }
+            string path = (extensions == null)
+                ? EditorUtility.OpenFilePanel(title, directory, "")
+                : EditorUtility.OpenFilePanelWithFilters(title, directory, GetFilterFromFileExtensionList(extensions));
 
             return string.IsNullOrEmpty(path) ? new string[0] : new[] { path };
         }
 
-        public void OpenFilePanelAsync(string title, string directory, ExtensionFilter[] extensions, bool multiselect, Action<string[]> cb)
-        {
-            cb.Invoke(OpenFilePanel(title, directory, extensions, multiselect));
-        }
-
+        /// <inheritdoc/>
         public string[] OpenFolderPanel(string title, string directory, bool multiselect)
         {
             var path = EditorUtility.OpenFolderPanel(title, directory, "");
             return string.IsNullOrEmpty(path) ? new string[0] : new[] { path };
         }
 
-        public void OpenFolderPanelAsync(string title, string directory, bool multiselect, Action<string[]> cb)
-        {
-            cb.Invoke(OpenFolderPanel(title, directory, multiselect));
-        }
 
+        /// <inheritdoc/>
         public string SaveFilePanel(string title, string directory, string defaultName, ExtensionFilter[] extensions)
         {
-            var ext = extensions != null ? extensions[0].Extensions[0] : "";
+            var ext = (extensions != null) ? extensions[0].Extensions[0] : "";
             var name = string.IsNullOrEmpty(ext) ? defaultName : defaultName + "." + ext;
             return EditorUtility.SaveFilePanel(title, directory, name, ext);
         }
 
-        public void SaveFilePanelAsync(string title, string directory, string defaultName, ExtensionFilter[] extensions, Action<string> cb)
-        {
-            cb.Invoke(SaveFilePanel(title, directory, defaultName, extensions));
-        }
 
-        // EditorUtility.OpenFilePanelWithFilters extension filter format
+        #region Private Method
+
         private static string[] GetFilterFromFileExtensionList(ExtensionFilter[] extensions)
         {
             var filters = new string[extensions.Length * 2];
@@ -61,7 +48,7 @@ namespace UniFileBrowser
             }
             return filters;
         }
+        #endregion
     }
 }
-
 #endif

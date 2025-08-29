@@ -1,34 +1,30 @@
-#if UNITY_STANDALONE_WIN
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
 using System;
 using System.IO;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using Ookii.Dialogs;
 
-namespace SFB
+namespace UniFileBrowser.Standalone
 {
-    // For fullscreen support
-    // - WindowWrapper class and GetActiveWindow() are required for modal file dialog.
-    // - "PlayerSettings/Visible In Background" should be enabled, otherwise when file dialog opened app window minimizes automatically.
-
-    public class WindowWrapper : IWin32Window
+    internal sealed class WindowWrapper : IWin32Window
     {
         private IntPtr _hwnd;
+        public IntPtr Handle => _hwnd;
+
         public WindowWrapper(IntPtr handle) { _hwnd = handle; }
-        public IntPtr Handle { get { return _hwnd; } }
     }
 
-    public class StandaloneFileBrowserWindows : IStandaloneFileBrowser
-    {
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetActiveWindow();
 
+    /// <summary>
+    /// 
+    /// </summary>
+    internal sealed class WindowsFileBrowser : IStandaloneFileBrowser
+    {
+        /// <inheritdoc/>
         public string[] OpenFilePanel(string title, string directory, ExtensionFilter[] extensions, bool multiselect)
         {
-            var fd = new VistaOpenFileDialog
-            {
-                Title = title
-            };
+            using var fd = new VistaOpenFileDialog { Title = title };
             if (extensions != null)
             {
                 fd.Filter = GetFilterFromFileExtensionList(extensions);
@@ -43,52 +39,36 @@ namespace SFB
             {
                 fd.FileName = GetDirectoryPath(directory);
             }
-            var res = fd.ShowDialog(new WindowWrapper(GetActiveWindow()));
+
+            var res = fd.ShowDialog(new WindowWrapper(NativeMethods.GetActiveWindow()));
             var filenames = res == DialogResult.OK ? fd.FileNames : new string[0];
-            fd.Dispose();
             return filenames;
         }
 
-        public void OpenFilePanelAsync(string title, string directory, ExtensionFilter[] extensions, bool multiselect, Action<string[]> cb)
-        {
-            cb.Invoke(OpenFilePanel(title, directory, extensions, multiselect));
-        }
-
+        /// <inheritdoc/>
         public string[] OpenFolderPanel(string title, string directory, bool multiselect)
         {
-            var fd = new VistaFolderBrowserDialog
-            {
-                Description = title
-            };
+            using var fd = new VistaFolderBrowserDialog { Description = title };
             if (!string.IsNullOrEmpty(directory))
             {
                 fd.SelectedPath = GetDirectoryPath(directory);
             }
-            var res = fd.ShowDialog(new WindowWrapper(GetActiveWindow()));
+
+            var res = fd.ShowDialog(new WindowWrapper(NativeMethods.GetActiveWindow()));
             var filenames = res == DialogResult.OK ? new[] { fd.SelectedPath } : new string[0];
-            fd.Dispose();
             return filenames;
         }
 
-        public void OpenFolderPanelAsync(string title, string directory, bool multiselect, Action<string[]> cb)
-        {
-            cb.Invoke(OpenFolderPanel(title, directory, multiselect));
-        }
-
+        /// <inheritdoc/>
         public string SaveFilePanel(string title, string directory, string defaultName, ExtensionFilter[] extensions)
         {
-            var fd = new VistaSaveFileDialog
-            {
-                Title = title
-            };
+            using var fd = new VistaSaveFileDialog { Title = title };
 
             var finalFilename = "";
-
             if (!string.IsNullOrEmpty(directory))
             {
                 finalFilename = GetDirectoryPath(directory);
             }
-
             if (!string.IsNullOrEmpty(defaultName))
             {
                 finalFilename += defaultName;
@@ -108,16 +88,14 @@ namespace SFB
                 fd.Filter = string.Empty;
                 fd.AddExtension = false;
             }
-            var res = fd.ShowDialog(new WindowWrapper(GetActiveWindow()));
+
+            var res = fd.ShowDialog(new WindowWrapper(NativeMethods.GetActiveWindow()));
             var filename = res == DialogResult.OK ? fd.FileName : "";
-            fd.Dispose();
             return filename;
         }
 
-        public void SaveFilePanelAsync(string title, string directory, string defaultName, ExtensionFilter[] extensions, Action<string> cb)
-        {
-            cb.Invoke(SaveFilePanel(title, directory, defaultName, extensions));
-        }
+
+        #region Private Method
 
         // .NET Framework FileDialog Filter format
         // https://msdn.microsoft.com/en-us/library/microsoft.win32.filedialog.filter
@@ -160,7 +138,14 @@ namespace SFB
             }
             return Path.GetDirectoryName(directoryPath) + Path.DirectorySeparatorChar;
         }
+        #endregion
+
+
+        private static class NativeMethods
+        {
+            [DllImport("user32.dll")]
+            public static extern IntPtr GetActiveWindow();
+        }
     }
 }
-
 #endif
