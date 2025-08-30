@@ -3,12 +3,10 @@ using System;
 namespace UniFileBrowser.Standalone
 {
     /// <summary>
-    /// 
     /// </summary>
     public interface IStandaloneFileBrowser
     {
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="title"></param>
         /// <param name="directory"></param>
@@ -16,9 +14,8 @@ namespace UniFileBrowser.Standalone
         /// <param name="multiselect"></param>
         /// <returns></returns>
         string[] OpenFilePanel(string title, string directory, ExtensionFilter[] extensions, bool multiselect);
-        
+
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="title"></param>
         /// <param name="directory"></param>
@@ -27,7 +24,6 @@ namespace UniFileBrowser.Standalone
         string[] OpenFolderPanel(string title, string directory, bool multiselect);
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="title"></param>
         /// <param name="directory"></param>
@@ -37,8 +33,8 @@ namespace UniFileBrowser.Standalone
         string SaveFilePanel(string title, string directory, string defaultName, ExtensionFilter[] extensions);
     }
 
+
     /// <summary>
-    /// 
     /// </summary>
     public interface IAsyncStandaloneFileBrowser
     {

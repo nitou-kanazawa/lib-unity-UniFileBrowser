@@ -1,21 +1,24 @@
-using AOT;
-using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using AOT;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace UniFileBrowser.Web
 {
+    /// <summary>
+    /// </summary>
     public static class WebFileBrowser
     {
         // 進行中のタスクを管理するためのDictionary
-        private static readonly Dictionary<int, UniTaskCompletionSource<string>> _pendingTasks = new();
-        private static int _taskIdCounter = 0;
+        private static readonly Dictionary<int, UniTaskCompletionSource<string>> PendingTasks = new();
+
+        private static int _taskIdCounter;
 
         /// <summary>
-        /// ファイル選択ダイアログを開く（ExtensionFilter配列版）
+        ///     ファイル選択ダイアログを開く（ExtensionFilter配列版）
         /// </summary>
         /// <param name="filters">ファイルフィルタ配列</param>
         /// <param name="cancellationToken">キャンセレーショントークン</param>
@@ -25,22 +28,17 @@ namespace UniFileBrowser.Web
             var taskId = ++_taskIdCounter;
             var completionSource = new UniTaskCompletionSource<string>();
 
-            _pendingTasks[taskId] = completionSource;
+            PendingTasks[taskId] = completionSource;
 
             // キャンセレーション処理
             if (cancellationToken.CanBeCanceled)
-            {
                 cancellationToken.Register(() =>
                 {
-                    if (_pendingTasks.TryGetValue(taskId, out var source))
-                    {
-                        _pendingTasks.Remove(taskId);
+                    if (PendingTasks.Remove(taskId, out var source))
                         source.TrySetCanceled(cancellationToken);
-                    }
                 });
-            }
 
-            string filterString = ConvertExtensionFiltersToString(filters);
+            var filterString = ConvertExtensionFiltersToString(filters);
 
             try
             {
@@ -48,7 +46,7 @@ namespace UniFileBrowser.Web
             }
             catch (Exception ex)
             {
-                _pendingTasks.Remove(taskId);
+                PendingTasks.Remove(taskId);
                 completionSource.TrySetException(ex);
             }
 
@@ -56,7 +54,7 @@ namespace UniFileBrowser.Web
         }
 
         /// <summary>
-        /// ファイル選択ダイアログを開く（単一ExtensionFilter版）
+        ///     ファイル選択ダイアログを開く（単一ExtensionFilter版）
         /// </summary>
         /// <param name="filter">ファイルフィルタ</param>
         /// <param name="cancellationToken">キャンセレーショントークン</param>
@@ -67,7 +65,7 @@ namespace UniFileBrowser.Web
         }
 
         /// <summary>
-        /// ファイル選択ダイアログを開く（フィルタなし版）
+        ///     ファイル選択ダイアログを開く（フィルタなし版）
         /// </summary>
         /// <param name="cancellationToken">キャンセレーショントークン</param>
         /// <returns>選択されたファイルのURL。キャンセルまたは選択なしの場合は空文字列</returns>
@@ -76,9 +74,8 @@ namespace UniFileBrowser.Web
             return OpenFileDialogAsync(Array.Empty<ExtensionFilter>(), cancellationToken);
         }
 
-
         /// <summary>
-        /// ExtensionFilter配列をHTML accept属性用の文字列に変換
+        ///     ExtensionFilter配列をHTML accept属性用の文字列に変換
         /// </summary>
         /// <param name="filters">ExtensionFilter配列</param>
         /// <returns>HTML accept属性用の文字列（例：".png,.jpg,.gif"）</returns>
@@ -88,18 +85,18 @@ namespace UniFileBrowser.Web
                 return string.Empty;
 
             var extensions = filters
-                .Where(f => f.Extensions != null && f.Extensions.Length > 0)
-                .SelectMany(f => f.Extensions)
-                .Where(ext => !string.IsNullOrEmpty(ext))
-                .Select(ext => ext.StartsWith(".") ? ext : "." + ext)
-                .Distinct()
-                .ToArray();
+                             .Where(f => f.extensions != null && f.extensions.Length > 0)
+                             .SelectMany(f => f.extensions)
+                             .Where(ext => !string.IsNullOrEmpty(ext))
+                             .Select(ext => ext.StartsWith(".") ? ext : "." + ext)
+                             .Distinct()
+                             .ToArray();
 
             return string.Join(",", extensions);
         }
 
         /// <summary>
-        /// JavaScript側からのコールバック処理
+        ///     JavaScript側からのコールバック処理
         /// </summary>
         /// <param name="taskId">タスクID</param>
         /// <param name="message">結果メッセージ</param>
@@ -108,19 +105,15 @@ namespace UniFileBrowser.Web
         {
             Debug.Log($"C# callback received: taskId={taskId}, message=\"{message}\"");
 
-            if (_pendingTasks.TryGetValue(taskId, out var completionSource))
+            if (PendingTasks.TryGetValue(taskId, out var completionSource))
             {
-                _pendingTasks.Remove(taskId);
+                PendingTasks.Remove(taskId);
 
                 // 空の文字列またはnullの場合はキャンセル扱い
                 if (string.IsNullOrEmpty(message))
-                {
                     completionSource.TrySetResult(string.Empty);
-                }
                 else
-                {
                     completionSource.TrySetResult(message);
-                }
             }
             else
             {
@@ -129,15 +122,12 @@ namespace UniFileBrowser.Web
         }
 
         /// <summary>
-        /// すべての進行中タスクをキャンセル（アプリケーション終了時などに使用）
+        ///     すべての進行中タスクをキャンセル（アプリケーション終了時などに使用）
         /// </summary>
         public static void CancelAllPendingTasks()
         {
-            foreach (var kvp in _pendingTasks)
-            {
-                kvp.Value.TrySetCanceled();
-            }
-            _pendingTasks.Clear();
+            foreach (var kvp in PendingTasks) kvp.Value.TrySetCanceled();
+            PendingTasks.Clear();
         }
     }
 }

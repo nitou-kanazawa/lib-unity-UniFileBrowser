@@ -1,27 +1,28 @@
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
 using System;
 using System.IO;
-using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using Ookii.Dialogs;
 
 namespace UniFileBrowser.Standalone
 {
     internal sealed class WindowWrapper : IWin32Window
     {
-        private IntPtr _hwnd;
-        public IntPtr Handle => _hwnd;
+        public WindowWrapper(IntPtr handle)
+        {
+            Handle = handle;
+        }
 
-        public WindowWrapper(IntPtr handle) { _hwnd = handle; }
+        public IntPtr Handle { get; }
     }
 
 
     /// <summary>
-    /// 
     /// </summary>
     internal sealed class WindowsFileBrowser : IStandaloneFileBrowser
     {
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public string[] OpenFilePanel(string title, string directory, ExtensionFilter[] extensions, bool multiselect)
         {
             using var fd = new VistaOpenFileDialog { Title = title };
@@ -34,52 +35,41 @@ namespace UniFileBrowser.Standalone
             {
                 fd.Filter = string.Empty;
             }
+
             fd.Multiselect = multiselect;
-            if (!string.IsNullOrEmpty(directory))
-            {
-                fd.FileName = GetDirectoryPath(directory);
-            }
+            if (!string.IsNullOrEmpty(directory)) fd.FileName = GetDirectoryPath(directory);
 
             var res = fd.ShowDialog(new WindowWrapper(NativeMethods.GetActiveWindow()));
             var filenames = res == DialogResult.OK ? fd.FileNames : new string[0];
             return filenames;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public string[] OpenFolderPanel(string title, string directory, bool multiselect)
         {
             using var fd = new VistaFolderBrowserDialog { Description = title };
-            if (!string.IsNullOrEmpty(directory))
-            {
-                fd.SelectedPath = GetDirectoryPath(directory);
-            }
+            if (!string.IsNullOrEmpty(directory)) fd.SelectedPath = GetDirectoryPath(directory);
 
             var res = fd.ShowDialog(new WindowWrapper(NativeMethods.GetActiveWindow()));
             var filenames = res == DialogResult.OK ? new[] { fd.SelectedPath } : new string[0];
             return filenames;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public string SaveFilePanel(string title, string directory, string defaultName, ExtensionFilter[] extensions)
         {
             using var fd = new VistaSaveFileDialog { Title = title };
 
             var finalFilename = "";
-            if (!string.IsNullOrEmpty(directory))
-            {
-                finalFilename = GetDirectoryPath(directory);
-            }
-            if (!string.IsNullOrEmpty(defaultName))
-            {
-                finalFilename += defaultName;
-            }
+            if (!string.IsNullOrEmpty(directory)) finalFilename = GetDirectoryPath(directory);
+            if (!string.IsNullOrEmpty(defaultName)) finalFilename += defaultName;
 
             fd.FileName = finalFilename;
             if (extensions != null)
             {
                 fd.Filter = GetFilterFromFileExtensionList(extensions);
                 fd.FilterIndex = 1;
-                fd.DefaultExt = extensions[0].Extensions[0];
+                fd.DefaultExt = extensions[0].extensions[0];
                 fd.AddExtension = true;
             }
             else
@@ -95,6 +85,13 @@ namespace UniFileBrowser.Standalone
         }
 
 
+        private static class NativeMethods
+        {
+            [DllImport("user32.dll")]
+            public static extern IntPtr GetActiveWindow();
+        }
+
+
         #region Private Method
 
         // .NET Framework FileDialog Filter format
@@ -104,23 +101,18 @@ namespace UniFileBrowser.Standalone
             var filterString = "";
             foreach (var filter in extensions)
             {
-                filterString += filter.Name + "(";
+                filterString += filter.name + "(";
 
-                foreach (var ext in filter.Extensions)
-                {
-                    filterString += "*." + ext + ",";
-                }
+                foreach (var ext in filter.extensions) filterString += "*." + ext + ",";
 
                 filterString = filterString.Remove(filterString.Length - 1);
                 filterString += ") |";
 
-                foreach (var ext in filter.Extensions)
-                {
-                    filterString += "*." + ext + "; ";
-                }
+                foreach (var ext in filter.extensions) filterString += "*." + ext + "; ";
 
                 filterString += "|";
             }
+
             filterString = filterString.Remove(filterString.Length - 1);
             return filterString;
         }
@@ -128,24 +120,12 @@ namespace UniFileBrowser.Standalone
         private static string GetDirectoryPath(string directory)
         {
             var directoryPath = Path.GetFullPath(directory);
-            if (!directoryPath.EndsWith("\\"))
-            {
-                directoryPath += "\\";
-            }
-            if (Path.GetPathRoot(directoryPath) == directoryPath)
-            {
-                return directory;
-            }
+            if (!directoryPath.EndsWith("\\")) directoryPath += "\\";
+            if (Path.GetPathRoot(directoryPath) == directoryPath) return directory;
             return Path.GetDirectoryName(directoryPath) + Path.DirectorySeparatorChar;
         }
+
         #endregion
-
-
-        private static class NativeMethods
-        {
-            [DllImport("user32.dll")]
-            public static extern IntPtr GetActiveWindow();
-        }
     }
 }
 #endif

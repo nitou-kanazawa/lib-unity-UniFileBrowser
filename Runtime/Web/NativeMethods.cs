@@ -1,10 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace UniFileBrowser.Web
-{
-    public sealed class NativeMethods {
-
+namespace UniFileBrowser.Web {
+    public static class NativeMethods {
         [DllImport("__Internal")]
         public static extern void OpenFileDialog(string filter, int taskId, Action<int, string> action);
 

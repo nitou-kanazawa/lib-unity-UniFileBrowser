@@ -1,22 +1,20 @@
-
 namespace UniFileBrowser
 {
     public struct ExtensionFilter
     {
-        public string Name;
-        public string[] Extensions;
+        public string name;
+        public string[] extensions;
 
         public ExtensionFilter(string filterName, params string[] filterExtensions)
         {
-            Name = filterName;
-            Extensions = filterExtensions;
+            name = filterName;
+            extensions = filterExtensions;
         }
 
         public int GetExtensionCount()
         {
-            return Extensions?.Length ?? 0;
+            return extensions?.Length ?? 0;
         }
-
 
         #region Static
 
@@ -25,6 +23,7 @@ namespace UniFileBrowser
         public static readonly ExtensionFilter Audio = new("Audio", "mp3", "wav", "ogg", "m4a", "aac");
         public static readonly ExtensionFilter Video = new("Video", "mp4", "avi", "mov", "wmv", "mkv", "webm");
         public static readonly ExtensionFilter All = new("All", "*");
-        #endregion
+
+        #endregion Static
     }
 }
