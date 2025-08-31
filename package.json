@@ -1,6 +1,6 @@
 {
-    "name": "com.nitou.uni-file-browser",
-    "version": "0.1.0",
+    "name": "com.nitou.unifilebrowser",
+    "version": "0.9.0",
     "displayName": "UniFileBrowser",
     "description": "A native file browser for unity standalone platforms",
     "author": {
