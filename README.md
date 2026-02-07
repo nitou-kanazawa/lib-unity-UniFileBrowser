@@ -2,10 +2,13 @@
 
 [![license](https://img.shields.io/badge/LICENSE-MIT-green.svg)](LICENSE)
 
-## 概要
+<img src="docs/images/header.png" width=400>
+
+
+## 🌀 概要
 各プラットフォームに対応したファイルブラウザを表示する．
 
-## 特徴
+## 🌀 特徴
 
 #### platform
 - Standalone
@@ -16,7 +19,7 @@
 - Web
 
 
-## セットアップ
+## 🌀 セットアップ
 #### 要件 / 開発環境
 - Unity 6000.0
 
@@ -39,4 +42,4 @@ https://github.com/nitou-kanazawa/lib-unity-UniFileBrowser.git
 ```
 
 
-## ドキュメント
+## 🌀 ドキュメント
