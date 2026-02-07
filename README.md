@@ -36,7 +36,7 @@ https://github.com/nitou-kanazawa/lib-unity-UniFileBrowser.git
 ```
 {
     "dependencies": {
-        "com.annulusgames.lit-motion": "https://github.com/nitou-kanazawa/lib-unity-UniFileBrowser.git"
+        "jp.nitou.unifilebrowser": "https://github.com/nitou-kanazawa/lib-unity-UniFileBrowser.git"
     }
 }
 ```
