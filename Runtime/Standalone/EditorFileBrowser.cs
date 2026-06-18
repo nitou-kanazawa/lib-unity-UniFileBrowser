@@ -29,7 +29,9 @@ namespace UniFileBrowser.Standalone
         /// <inheritdoc />
         public string SaveFilePanel(string title, string directory, string defaultName, ExtensionFilter[] extensions)
         {
-            var ext = extensions != null ? extensions[0].extensions[0] : "";
+            var ext = extensions is { Length: > 0 } && extensions[0].GetExtensionCount() > 0
+                ? extensions[0].extensions[0]
+                : "";
             var name = string.IsNullOrEmpty(ext) ? defaultName : defaultName + "." + ext;
             return EditorUtility.SaveFilePanel(title, directory, name, ext);
         }

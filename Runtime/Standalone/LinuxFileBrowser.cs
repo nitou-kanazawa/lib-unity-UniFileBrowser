@@ -46,11 +46,13 @@ namespace UniFileBrowser.Standalone
 
         private static string GetFilterFromFileExtensionList(ExtensionFilter[] extensions)
         {
-            if (extensions == null) return "";
+            if (extensions == null || extensions.Length == 0) return "";
 
             var filterString = "";
             foreach (var filter in extensions)
             {
+                if (filter.GetExtensionCount() == 0) continue;
+
                 filterString += filter.name + ";";
 
                 foreach (var ext in filter.extensions) filterString += ext + ",";
@@ -58,6 +60,8 @@ namespace UniFileBrowser.Standalone
                 filterString = filterString.Remove(filterString.Length - 1);
                 filterString += "|";
             }
+
+            if (filterString.Length == 0) return "";
 
             filterString = filterString.Remove(filterString.Length - 1);
             return filterString;
