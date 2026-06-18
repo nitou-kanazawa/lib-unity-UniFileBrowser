@@ -21,17 +21,25 @@ namespace UniFileBrowser.Standalone
 
         public static string[] OpenFilePanel(string title, string directory, ExtensionFilter[] extensions, bool multiselect)
         {
-            return FileBrowser.OpenFilePanel(title, directory, extensions, multiselect);
+            return GetBrowser().OpenFilePanel(title, directory, extensions, multiselect);
         }
 
         public static string[] OpenFolderPanel(string title, string directory, bool multiselect)
         {
-            return FileBrowser.OpenFolderPanel(title, directory, multiselect);
+            return GetBrowser().OpenFolderPanel(title, directory, multiselect);
         }
 
         public static string SaveFilePanel(string title, string directory, string defaultName, ExtensionFilter[] extensions)
         {
-            return FileBrowser.SaveFilePanel(title, directory, defaultName, extensions);
+            return GetBrowser().SaveFilePanel(title, directory, defaultName, extensions);
+        }
+
+        private static IStandaloneFileBrowser GetBrowser()
+        {
+            if (FileBrowser == null)
+                throw new System.PlatformNotSupportedException(
+                    "StandaloneFileBrowser is not supported on the current platform.");
+            return FileBrowser;
         }
     }
 }
