@@ -37,6 +37,7 @@ var FileBrowser = {
 
         // ファイル選択時の処理：選択されたファイルをUnityに通知
         fileInput.onchange = function (event) {
+            var fileUrl = null;
             try {
                 if (!event.target.files || event.target.files.length === 0) {
                     throw new Error('No file selected');
@@ -44,20 +45,31 @@ var FileBrowser = {
 
                 // JS文字列をUTF8文字列に変換して確保
                 var file = event.target.files[0];
-                var fileUrl = URL.createObjectURL(file);
+                fileUrl = URL.createObjectURL(file);
                 var buffer = stringToNewUTF8(fileUrl);
 
-                // コールバック呼び出し（taskIdとbufferを渡す）
-                {{{ makeDynCall('vii', 'callback') }}} (taskId, buffer);
+                // コールバック呼び出し（taskIdとbufferを渡す）。
+                // 確保したbufferは呼び出し後に必ず解放する
+                try {
+                    {{{ makeDynCall('vii', 'callback') }}} (taskId, buffer);
+                } finally {
+                    _free(buffer);
+                }
 
             } catch (error) {
                 console.error('File selection error:', error);
-                // エラー時は空文字列を返す
+                // エラー時は空文字列を返す。確保したbufferは必ず解放する
                 var errorBuffer = stringToNewUTF8("");
-                {{{ makeDynCall('vii', 'callback') }}} (taskId, errorBuffer);
+                try {
+                    {{{ makeDynCall('vii', 'callback') }}} (taskId, errorBuffer);
+                } finally {
+                    _free(errorBuffer);
+                }
             } finally {
-                _free(buffer);
-                URL.revokeObjectURL(fileUrl);
+                // URLが生成された場合のみ破棄する（undefinedでの呼び出しを避ける）
+                if (fileUrl) {
+                    URL.revokeObjectURL(fileUrl);
+                }
 
                 if (fileInput.parentNode) {
                     document.body.removeChild(fileInput);

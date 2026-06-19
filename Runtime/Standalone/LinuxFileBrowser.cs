@@ -20,7 +20,7 @@ namespace UniFileBrowser.Standalone
                 directory,
                 GetFilterFromFileExtensionList(extensions),
                 multiselect));
-            return paths.Split((char)28);
+            return string.IsNullOrEmpty(paths) ? Array.Empty<string>() : paths.Split((char)28);
         }
 
         /// <inheritdoc />
@@ -30,17 +30,18 @@ namespace UniFileBrowser.Standalone
                 title,
                 directory,
                 multiselect));
-            return paths.Split((char)28);
+            return string.IsNullOrEmpty(paths) ? Array.Empty<string>() : paths.Split((char)28);
         }
 
         /// <inheritdoc />
         public string SaveFilePanel(string title, string directory, string defaultName, ExtensionFilter[] extensions)
         {
-            return Marshal.PtrToStringAnsi(NativeMethods.DialogSaveFilePanel(
+            var path = Marshal.PtrToStringAnsi(NativeMethods.DialogSaveFilePanel(
                 title,
                 directory,
                 defaultName,
                 GetFilterFromFileExtensionList(extensions)));
+            return path ?? string.Empty;
         }
 
 
