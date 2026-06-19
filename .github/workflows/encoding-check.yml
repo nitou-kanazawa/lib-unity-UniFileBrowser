@@ -1,0 +1,50 @@
+name: encoding-check
+
+# Unity 不要の軽量チェック。
+# ソース/テキストファイルが有効な UTF-8 であることを検証し、
+# Shift-JIS 由来の文字化け等が混入していないかを機械的に検出する。
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  utf8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify text sources are valid UTF-8
+        shell: python
+        run: |
+          import pathlib, sys
+
+          # 検査対象の拡張子（テキスト系のみ。バイナリは除外）
+          exts = {
+              ".cs", ".jslib", ".json", ".md", ".asmdef", ".asmref",
+              ".shader", ".cginc", ".hlsl", ".compute",
+              ".uxml", ".uss", ".txt", ".xml", ".yml", ".yaml", ".meta",
+          }
+
+          bad = []
+          for path in pathlib.Path(".").rglob("*"):
+              if not path.is_file():
+                  continue
+              if ".git/" in path.as_posix() + "/":
+                  continue
+              if path.suffix.lower() not in exts:
+                  continue
+              data = path.read_bytes()
+              try:
+                  data.decode("utf-8")
+              except UnicodeDecodeError as e:
+                  bad.append((path.as_posix(), str(e)))
+
+          if bad:
+              print("::error::Non-UTF-8 files detected:")
+              for p, err in bad:
+                  print(f"  {p}: {err}")
+              sys.exit(1)
+
+          print("All checked text files are valid UTF-8.")
