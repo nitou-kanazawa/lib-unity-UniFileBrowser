@@ -26,7 +26,7 @@ namespace UniFileBrowser.Standalone
         public string[] OpenFilePanel(string title, string directory, ExtensionFilter[] extensions, bool multiselect)
         {
             using var fd = new VistaOpenFileDialog { Title = title };
-            if (extensions != null)
+            if (extensions != null && extensions.Length > 0)
             {
                 fd.Filter = GetFilterFromFileExtensionList(extensions);
                 fd.FilterIndex = 1;
@@ -65,12 +65,20 @@ namespace UniFileBrowser.Standalone
             if (!string.IsNullOrEmpty(defaultName)) finalFilename += defaultName;
 
             fd.FileName = finalFilename;
-            if (extensions != null)
+            if (extensions != null && extensions.Length > 0)
             {
                 fd.Filter = GetFilterFromFileExtensionList(extensions);
                 fd.FilterIndex = 1;
-                fd.DefaultExt = extensions[0].extensions[0];
-                fd.AddExtension = true;
+                if (extensions[0].GetExtensionCount() > 0)
+                {
+                    fd.DefaultExt = extensions[0].extensions[0];
+                    fd.AddExtension = true;
+                }
+                else
+                {
+                    fd.DefaultExt = string.Empty;
+                    fd.AddExtension = false;
+                }
             }
             else
             {
@@ -98,9 +106,13 @@ namespace UniFileBrowser.Standalone
         // https://msdn.microsoft.com/en-us/library/microsoft.win32.filedialog.filter
         private static string GetFilterFromFileExtensionList(ExtensionFilter[] extensions)
         {
+            if (extensions == null || extensions.Length == 0) return string.Empty;
+
             var filterString = "";
             foreach (var filter in extensions)
             {
+                if (filter.GetExtensionCount() == 0) continue;
+
                 filterString += filter.name + "(";
 
                 foreach (var ext in filter.extensions) filterString += "*." + ext + ",";
@@ -112,6 +124,8 @@ namespace UniFileBrowser.Standalone
 
                 filterString += "|";
             }
+
+            if (filterString.Length == 0) return string.Empty;
 
             filterString = filterString.Remove(filterString.Length - 1);
             return filterString;

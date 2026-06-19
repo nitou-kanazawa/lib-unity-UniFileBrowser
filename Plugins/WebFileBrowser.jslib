@@ -1,10 +1,10 @@
 var FileBrowser = {
 
     /**
-     * ƒtƒ@ƒCƒ‹‘I‘ğƒ_ƒCƒAƒƒO‚ğŠJ‚­
-     * @param {number} filterPtr - ƒtƒ@ƒCƒ‹ƒtƒBƒ‹ƒ^•¶š—ñ‚Ö‚Ìƒ|ƒCƒ“ƒ^ (—á: ".png,.jpg")
-     * @param {number} taskId - ƒ^ƒXƒNID
-     * @param {number} callback - Unity‘¤‚ÌƒR[ƒ‹ƒoƒbƒNŠÖ”ƒ|ƒCƒ“ƒ^
+     * ãƒ•ã‚¡ã‚¤ãƒ«é¸æŠãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’é–‹ã
+     * @param {number} filterPtr - ãƒ•ã‚¡ã‚¤ãƒ«ãƒ•ã‚£ãƒ«ã‚¿æ–‡å­—åˆ—ã¸ã®ãƒã‚¤ãƒ³ã‚¿ (ä¾‹: ".png,.jpg")
+     * @param {number} taskId - ã‚¿ã‚¹ã‚¯ID
+     * @param {number} callback - Unityå´ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°ãƒã‚¤ãƒ³ã‚¿
      * @returns {void}
     */
     OpenFileDialog: function (filterPtr, taskId, callback) {
@@ -30,29 +30,29 @@ var FileBrowser = {
             fileInput.setAttribute('accept', filter);
         }
 
-        // ƒNƒŠƒbƒN‚Ìˆ—F“¯‚¶ƒtƒ@ƒCƒ‹‚ÌÄ‘I‘ğ‚ğ‰Â”\‚É‚·‚é‚½‚ß’l‚ğƒNƒŠƒA
+        // ã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç†ï¼šåŒã˜ãƒ•ã‚¡ã‚¤ãƒ«ã®å†é¸æŠã‚’å¯èƒ½ã«ã™ã‚‹ãŸã‚å€¤ã‚’ã‚¯ãƒªã‚¢
         fileInput.onclick = function (event) {
             event.target.value = null;
         };
 
-        // ƒtƒ@ƒCƒ‹‘I‘ğ‚Ìˆ—F‘I‘ğ‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ğUnity‚É’Ê’m
+        // ãƒ•ã‚¡ã‚¤ãƒ«é¸æŠæ™‚ã®å‡¦ç†ï¼šé¸æŠã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’Unityã«é€šçŸ¥
         fileInput.onchange = function (event) {
             try {
                 if (!event.target.files || event.target.files.length === 0) {
                     throw new Error('No file selected');
                 }
 
-                // JS•¶š—ñ‚ğUTF8•¶š—ñ‚É•ÏŠ·‚µ‚ÄŠm•Û
+                // JSæ–‡å­—åˆ—ã‚’UTF8æ–‡å­—åˆ—ã«å¤‰æ›ã—ã¦ç¢ºä¿
                 var file = event.target.files[0];
                 var fileUrl = URL.createObjectURL(file);
                 var buffer = stringToNewUTF8(fileUrl);
 
-                // ƒR[ƒ‹ƒoƒbƒNŒÄ‚Ño‚µitaskId‚Æbuffer‚ğ“n‚·j
+                // ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯å‘¼ã³å‡ºã—ï¼ˆtaskIdã¨bufferã‚’æ¸¡ã™ï¼‰
                 {{{ makeDynCall('vii', 'callback') }}} (taskId, buffer);
 
             } catch (error) {
                 console.error('File selection error:', error);
-                // ƒGƒ‰[‚Í‹ó•¶š—ñ‚ğ•Ô‚·
+                // ã‚¨ãƒ©ãƒ¼æ™‚ã¯ç©ºæ–‡å­—åˆ—ã‚’è¿”ã™
                 var errorBuffer = stringToNewUTF8("");
                 {{{ makeDynCall('vii', 'callback') }}} (taskId, errorBuffer);
             } finally {
@@ -78,7 +78,7 @@ var FileBrowser = {
 
         document.body.appendChild(fileInput);
 
-        // ƒtƒ@ƒCƒ‹‘I‘ğƒ_ƒCƒAƒƒO‚ğ‘¦À‚ÉŠJ‚­
+        // ãƒ•ã‚¡ã‚¤ãƒ«é¸æŠãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å³åº§ã«é–‹ã
         fileInput.click();
     }
 

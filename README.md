@@ -13,7 +13,7 @@
 #### platform
 - Standalone
   - Windows
-  - Mac
+  - Mac ※未対応（呼び出すと `NotSupportedException` を送出）
   - Linux
   - Editor
 - Web
